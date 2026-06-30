@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ced4d9458924f94a579211646f3bd0f, type: 3}
+  m_Name: NotesPoolConfig
+  m_EditorClassIdentifier: Assembly-CSharp::SMT3.Data.NotesPoolConfig
+  _notePoolConfigs:
+  - _noteType: 0
+    _notePrefabs: {fileID: -8577248752868600679, guid: a5f3c5ff166ce304f86f4d5471083374, type: 3}
+    _defaultPoolSize: 5
+    _maxPoolSize: 20
+  - _noteType: 1
+    _notePrefabs: {fileID: -6676990583229443174, guid: 2f4cf509c73f57b4aa8a492ecf64cd00, type: 3}
+    _defaultPoolSize: 5
+    _maxPoolSize: 20
+  - _noteType: 3
+    _notePrefabs: {fileID: -3992705716266651261, guid: d2f46a837ebb4e84199ebe3b710319a3, type: 3}
+    _defaultPoolSize: 5
+    _maxPoolSize: 20
