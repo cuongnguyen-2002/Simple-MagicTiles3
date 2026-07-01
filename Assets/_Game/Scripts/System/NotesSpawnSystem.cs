@@ -9,23 +9,28 @@ namespace SMT3.Systems
 {
     public class NotesSpawnSystem : MonoBehaviour
     {
+        [Header("References")]
         [SerializeField] private NotesFactory _notesFactory;
         [SerializeField] private Transform[] _spawnPoints;
         [SerializeField] private Transform _hitY;
         [SerializeField] private TextAsset _notesFile;
         [SerializeField] private AudioClip _bgmClip;
-        
         [SerializeField] private AudioSystem _audioSystem;
         
+        [Header("Config")]
+        [SerializeField] private float _visualOffsetMultiplier  = 1f;
+        [SerializeField] private float _spawnOffset = 2f;
+        
         private List<NoteData> _notesData = new();
-        private int _noteIndex = 0;
-        private float _topY;
+        private List<NoteBase> _activeNotes = new();
+        private int _currentNoteIndex = 0;
+        private float _spawnY;
         private float _visualSpeed;
         private float _travelTime = 0;
-        
         private bool _playing = false;
         
-        private List<NoteBase> _activeNotes = new();
+        public List<NoteBase> ActiveNotes => _activeNotes;
+        
         
         private void Awake()
         {
@@ -34,10 +39,10 @@ namespace SMT3.Systems
             _notesData = root.Notes;
             _notesData.Sort((a, b) => a.Time.CompareTo(b.Time));
             
-            _topY = Camera.main.orthographicSize + 2f;
-            _visualSpeed = root.SongMeta.VisualSpeed * 2;
-            _travelTime = (_topY - _hitY.transform.position.y) / _visualSpeed;
-            _noteIndex = 1;
+            _spawnY = Camera.main.orthographicSize + _spawnOffset;
+            _visualSpeed = root.SongMeta.VisualSpeed * _visualOffsetMultiplier;
+            _travelTime = (_spawnY - _hitY.transform.position.y) / _visualSpeed;
+            _currentNoteIndex = 1;
         }
 
         private void Start()
@@ -50,7 +55,7 @@ namespace SMT3.Systems
         public void Init(List<NoteData> notesData)
         {
             _notesData = notesData;
-            _noteIndex = 1;
+            _currentNoteIndex = 1;
         }
 
         [ContextMenu("Play")]
@@ -72,20 +77,19 @@ namespace SMT3.Systems
             if (!_playing) return;
             
             double songTime = _audioSystem.SongTime;
-            double dps = _audioSystem.SongDps;
             SpawnPendingNote(songTime);
-            TickActiveNotes(dps);
+            TickActiveNotes(songTime);
         }
 
         private void SpawnPendingNote(double songTime)
         {
-            while (_noteIndex < _notesData.Count)
+            while (_currentNoteIndex < _notesData.Count)
             {
-                double expectedSpawnTime = _notesData[_noteIndex].Time - _travelTime;
+                double expectedSpawnTime = _notesData[_currentNoteIndex].Time - _travelTime;
                 if (expectedSpawnTime <= songTime)
                 {
-                    var note = SpawnNote(_notesData[_noteIndex]);
-                    _noteIndex++;
+                    var note = SpawnNote(_notesData[_currentNoteIndex]);
+                    _currentNoteIndex++;
                     
                     if(note == null) continue;
                     _activeNotes.Add(note);

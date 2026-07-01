@@ -1,4 +1,5 @@
 using System;
+using DG.Tweening;
 using SMT3.Data;
 using UnityEngine;
 
@@ -16,23 +17,29 @@ namespace SMT3.Notes
     {
         Idle,
         Active,
-        Inactive
+        Judged,
+        Returned
     }
+    
+    
     public abstract class NoteBase : MonoBehaviour
     {
         [SerializeField] protected SpriteRenderer _noteVisual;
-        protected NoteType _noteType;
-        public NoteType NoteType => _noteType;
-        
-        protected float _speed;
         protected NoteData _data;
-        protected double _songStartDSP;
+        protected NoteType _noteType;
+        protected NoteState _noteState = NoteState.Idle;
+        protected float _speed;
         protected float _hitY;
+        protected float _hitOffset = 4f;
+        protected Tween _noteVisualTween;
+        protected double _songStartDSP;
         
         public Action<NoteBase> OnHit;
-        private bool _isDie = false;
-
-        public bool IsOutRange => transform.position.y < _hitY - 2f;
+        public NoteType NoteType => _noteType;
+        public bool IsOutRange => transform.position.y < _hitY - _hitOffset;
+        public bool IsActive => _noteState == NoteState.Active;
+        public int Lane => _data.Lane;
+        public double HitTime => _data.Time;
 
         public void Init(NoteData data,
             double songStartDSP,
@@ -41,29 +48,47 @@ namespace SMT3.Notes
         {
             _data = data;
             _noteType = data.Type;
-            _songStartDSP = songStartDSP;
             _hitY = hitY;
             _speed = speed;
-            _isDie = false;
+            _songStartDSP = songStartDSP;
             OnInit();
         }
         
         public virtual void OnUpdate(double songTime)
         {
-            if(_isDie) return;
-            double remain = (float)(songTime - _songStartDSP);
-            var pos = transform.position;
-            pos.y = _hitY + (float)(_data.Time - remain) * _speed;
-            transform.position = pos;
+            if(_noteState  != NoteState.Active) return;
+            
+            Vector2 currentPosition = transform.position;
+            currentPosition.y = _hitY + (float)(_data.Time - songTime) * _speed;
+            transform.position = currentPosition;
             if (IsOutRange)
             {
-                OnHit?.Invoke(this);
-                _isDie = true;
+                Completed();
             }
         }
-        
+
         protected virtual void OnInit()
-        {}
-        
+        {
+            _noteVisualTween?.Kill();
+            _noteVisualTween = _noteVisual.DOFade(1, 0);
+            _noteState = NoteState.Active;
+        }
+
+        public virtual void OnTabBegan(double songDps){}
+        public virtual void OnTabEnded(double songDps) {}
+        public virtual void OnHeld(double songDps) {}
+
+        private void ReturnToPool()
+        {
+            _noteVisualTween?.Kill();
+            _noteVisualTween = _noteVisual.DOFade(0, 0.5f).OnComplete(() => OnHit?.Invoke(this));
+        }
+
+        protected void Completed()
+        {
+            ReturnToPool();
+            _noteState = NoteState.Returned;
+        }
+
     }
 }
