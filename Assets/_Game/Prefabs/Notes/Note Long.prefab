@@ -198,6 +198,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SMT3.Notes.LongNote
   _noteVisual: {fileID: 973781173475856878}
+  _noteVisuals:
+  - {fileID: 973781173475856878}
+  - {fileID: 704828835550239774}
+  - {fileID: 6294606614374296810}
+  - {fileID: 2712805578539286704}
   _tail: {fileID: 704828835550239774}
   _holdVisual: {fileID: 2712805578539286704}
 --- !u!1 &1654196910172431283

@@ -197,3 +197,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SMT3.Notes.ShortNote
   _noteVisual: {fileID: 8400487422755629040}
+  _noteVisuals:
+  - {fileID: 8400487422755629040}

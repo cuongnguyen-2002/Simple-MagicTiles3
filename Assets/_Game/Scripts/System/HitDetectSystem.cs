@@ -20,12 +20,14 @@ public class HitDetectSystem : MonoBehaviour
     {
         _inputSystem.OnTabBegan += HandleTabBegan;
         _inputSystem.OnTabEnded += HandleTabEnded;
+        _inputSystem.OnHeldTab +=  HandleTabHeld;
     }
 
     private void OnDisable()
     {
         _inputSystem.OnTabBegan -= HandleTabBegan;
         _inputSystem.OnTabEnded -= HandleTabEnded;
+        _inputSystem.OnHeldTab -=  HandleTabHeld;
     }
 
     private void HandleTabBegan(TouchInfo touchInfo)
@@ -41,6 +43,12 @@ public class HitDetectSystem : MonoBehaviour
         if(!_fingerNotesMap.TryGetValue(touchInfo.FingerId, out NoteBase fingerNote)) return;
         fingerNote.OnTabEnded(touchInfo.DpsTime);
         _fingerNotesMap.Remove(touchInfo.FingerId);
+    }
+
+    private void HandleTabHeld(TouchInfo touchInfo)
+    {
+        if(!_fingerNotesMap.TryGetValue(touchInfo.FingerId, out NoteBase fingerNote)) return;
+        fingerNote.OnHeld(touchInfo.DpsTime);
     }
 
     private NoteBase FindBestNote(TouchInfo touchInfo)

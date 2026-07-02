@@ -1,25 +1,23 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using SMT3.Core;
 using UnityEngine;
 using SMT3.Data;
 using SMT3.Notes;
 
 namespace SMT3.Systems
 {
-    public class NotesSpawnSystem : MonoBehaviour
+    public class NotesSpawnSystem : MonoBehaviour, ITickable
     {
         [Header("References")]
         [SerializeField] private NotesFactory _notesFactory;
         [SerializeField] private Transform[] _spawnPoints;
         [SerializeField] private Transform _hitY;
-        [SerializeField] private TextAsset _notesFile;
-        [SerializeField] private AudioClip _bgmClip;
         [SerializeField] private AudioSystem _audioSystem;
         
         [Header("Config")]
         [SerializeField] private float _visualOffsetMultiplier  = 1f;
-        [SerializeField] private float _spawnOffset = 2f;
         
         private List<NoteData> _notesData = new();
         private List<NoteBase> _activeNotes = new();
@@ -27,7 +25,6 @@ namespace SMT3.Systems
         private float _spawnY;
         private float _visualSpeed;
         private float _travelTime = 0;
-        private bool _playing = false;
         
         public List<NoteBase> ActiveNotes => _activeNotes;
         
@@ -35,48 +32,19 @@ namespace SMT3.Systems
         private void Awake()
         {
             _notesFactory.Init();
-            RootNoteData root = JsonConvert.DeserializeObject<RootNoteData>(_notesFile.text);
-            _notesData = root.Notes;
-            _notesData.Sort((a, b) => a.Time.CompareTo(b.Time));
-            
-            _spawnY = Camera.main.orthographicSize + _spawnOffset;
-            _visualSpeed = root.SongMeta.VisualSpeed * _visualOffsetMultiplier;
-            _travelTime = (_spawnY - _hitY.transform.position.y) / _visualSpeed;
-            _currentNoteIndex = 1;
         }
-
-        private void Start()
-        {
-            // SpawnNote(_notesData[_noteIndex]);
-            // _noteIndex++;
-        }
-
-
-        public void Init(List<NoteData> notesData)
+        public void Init(List<NoteData> notesData, float visualSpeed, float spawnY)
         {
             _notesData = notesData;
+            _spawnY = spawnY;
+            _visualSpeed = visualSpeed * _visualOffsetMultiplier;
+            _travelTime = (_spawnY - _hitY.transform.position.y) / _visualSpeed;
+            //skip note start
             _currentNoteIndex = 1;
         }
 
-        [ContextMenu("Play")]
-        public void Play()
+        public void OnTick(double songTime)
         {
-            _playing = true;
-            
-            _audioSystem.InitSound(_bgmClip);
-            _audioSystem.StartSong();
-        }
-
-        private void Update()
-        {
-            if (!_playing && Input.GetKeyDown(KeyCode.Space))
-            {
-                Play();
-            }
-            
-            if (!_playing) return;
-            
-            double songTime = _audioSystem.SongTime;
             SpawnPendingNote(songTime);
             TickActiveNotes(songTime);
         }
@@ -88,7 +56,7 @@ namespace SMT3.Systems
                 double expectedSpawnTime = _notesData[_currentNoteIndex].Time - _travelTime;
                 if (expectedSpawnTime <= songTime)
                 {
-                    var note = SpawnNote(_notesData[_currentNoteIndex]);
+                    var note = SpawnNote(_notesData[_currentNoteIndex], songTime);
                     _currentNoteIndex++;
                     
                     if(note == null) continue;
@@ -108,11 +76,11 @@ namespace SMT3.Systems
                     _activeNotes.RemoveAt(i);
                     continue;
                 }
-                note.OnUpdate(songTime);
+                note.OnTick(songTime);
             }
         }
         
-        private NoteBase SpawnNote(NoteData noteData)
+        private NoteBase SpawnNote(NoteData noteData, double currentSongTime)
         {
             NoteBase note = _notesFactory.GetNote(noteData.Type);
             if (note == null)
@@ -122,14 +90,18 @@ namespace SMT3.Systems
             }
             note.Init(noteData, _audioSystem.SongStartDps , _visualSpeed, _hitY.position.y);
             
-            float currentTime = (float) _audioSystem.SongTime;
-            float remain = ((float)noteData.Time - currentTime);
+            float remain = (float)(noteData.Time - currentSongTime);
             float posy = _hitY.position.y + (remain * _visualSpeed);
             float posx = _spawnPoints[noteData.Lane - 1].position.x;
             
             note.transform.position = new Vector3(posx, posy, 0);
 
             return note;
+        }
+
+        private void CreateStartNote(NoteData noteData)
+        {
+            
         }
     }
 }

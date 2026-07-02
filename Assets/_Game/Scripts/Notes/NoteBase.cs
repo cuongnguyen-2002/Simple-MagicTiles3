@@ -1,5 +1,6 @@
 using System;
 using DG.Tweening;
+using SMT3.Core;
 using SMT3.Data;
 using UnityEngine;
 
@@ -17,14 +18,14 @@ namespace SMT3.Notes
     {
         Idle,
         Active,
-        Judged,
         Returned
     }
     
     
-    public abstract class NoteBase : MonoBehaviour
+    public abstract class NoteBase : MonoBehaviour, ITickable
     {
         [SerializeField] protected SpriteRenderer _noteVisual;
+        [SerializeField] private SpriteRenderer[]  _noteVisuals;
         protected NoteData _data;
         protected NoteType _noteType;
         protected NoteState _noteState = NoteState.Idle;
@@ -54,23 +55,20 @@ namespace SMT3.Notes
             OnInit();
         }
         
-        public virtual void OnUpdate(double songTime)
+        public virtual void OnTick(double songTime)
         {
             if(_noteState  != NoteState.Active) return;
             
             Vector2 currentPosition = transform.position;
             currentPosition.y = _hitY + (float)(_data.Time - songTime) * _speed;
             transform.position = currentPosition;
-            if (IsOutRange)
-            {
-                Completed();
-            }
+            if (IsOutRange) HandleMissTimeout();
         }
 
         protected virtual void OnInit()
         {
             _noteVisualTween?.Kill();
-            _noteVisualTween = _noteVisual.DOFade(1, 0);
+            _noteVisualTween = FadeAllVisual(1, 0);
             _noteState = NoteState.Active;
         }
 
@@ -81,13 +79,28 @@ namespace SMT3.Notes
         private void ReturnToPool()
         {
             _noteVisualTween?.Kill();
-            _noteVisualTween = _noteVisual.DOFade(0, 0.5f).OnComplete(() => OnHit?.Invoke(this));
+            _noteVisualTween = FadeAllVisual(0, 0.5f).OnComplete(() => OnHit?.Invoke(this));
         }
 
-        protected void Completed()
+        public virtual void CompleteHandle()
         {
             ReturnToPool();
             _noteState = NoteState.Returned;
+        }
+
+        private void HandleMissTimeout()
+        {
+            CompleteHandle();
+        }
+
+        private Tween FadeAllVisual(float alpha, float duration)
+        {
+            Sequence seq = DOTween.Sequence();
+            for (int i = 0; i < _noteVisuals.Length; i++)
+            {
+                seq.Join(_noteVisuals[i].DOFade(alpha, duration));
+            }
+            return seq;
         }
 
     }
