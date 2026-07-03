@@ -50,6 +50,7 @@ namespace SMT3.Systems
             if (!_notesPool.TryGetValue(noteType, out var pool)) return null;
             
             var note = pool.Get();
+            note.transform.parent = transform;
             return note;
         }
 

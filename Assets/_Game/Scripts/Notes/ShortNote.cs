@@ -1,5 +1,6 @@
 using System;
 using SMT3.Game;
+using SMT3.Systems;
 using UnityEngine;
 
 namespace SMT3.Notes
@@ -15,6 +16,7 @@ namespace SMT3.Notes
                 TabTime =  songDps - _songStartDSP
             };
             GameEvents.RaiseOnNoteHit(hitEvent);
+            GameEvents.RaiseSpawnVFX(VFXType.Tab, Center);
         }
     }
 }

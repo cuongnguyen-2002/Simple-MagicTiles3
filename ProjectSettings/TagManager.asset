@@ -47,5 +47,8 @@ TagManager:
   - name: Notes
     uniqueID: 1317906829
     locked: 0
+  - name: FX
+    uniqueID: 2080490305
+    locked: 0
   m_RenderingLayers:
   - Default

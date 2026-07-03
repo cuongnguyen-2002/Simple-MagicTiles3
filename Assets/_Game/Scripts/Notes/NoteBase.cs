@@ -2,6 +2,7 @@ using System;
 using DG.Tweening;
 using SMT3.Core;
 using SMT3.Data;
+using SMT3.Game;
 using UnityEngine;
 
 namespace SMT3.Notes
@@ -41,6 +42,7 @@ namespace SMT3.Notes
         public bool IsActive => _noteState == NoteState.Active;
         public int Lane => _data.Lane;
         public double HitTime => _data.Time;
+        public Vector3 Center => _noteVisual.bounds.center;
 
         public void Init(NoteData data,
             double songStartDSP,
@@ -91,6 +93,7 @@ namespace SMT3.Notes
         private void HandleMissTimeout()
         {
             CompleteHandle();
+            GameEvents.RaiseOnGameOver();
         }
 
         private Tween FadeAllVisual(float alpha, float duration)

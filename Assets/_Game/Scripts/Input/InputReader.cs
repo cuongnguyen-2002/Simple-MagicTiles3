@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using SMT3.Game;
 using UnityEngine;
 
 namespace SMT3.InputSystem
@@ -19,10 +21,82 @@ namespace SMT3.InputSystem
         
         private bool _isHeldTab = false;
         private int _landCount = 4;
+        private Dictionary<int, TouchInfo> _activeTouches = new();
+        private bool _activeInput = false;
+
+        private void OnEnable()
+        {
+            GameEvents.OnGameStarted += ActiveInput;
+            GameEvents.OnGameOver += InactiveInput;
+            GameEvents.OnGameReset += ActiveInput;
+        }
+
+        private void OnDisable()
+        {
+            GameEvents.OnGameStarted -= ActiveInput;
+            GameEvents.OnGameOver -= InactiveInput;
+            GameEvents.OnGameReset -= ActiveInput;
+        }
+
+        private void ActiveInput()
+        {
+            _activeInput = true;
+        }
+
+        private void InactiveInput()
+        {
+            _activeInput = false;
+        }
 
         private void Update()
         {
+            if(!_activeInput) return;
+#if !UNITY_EDITOR && UNITY_ANDROID
+            HandleTouchInput();
+#else
             MouseInputReader();
+#endif
+            
+        }
+        
+        private void HandleTouchInput()
+        {
+            for (int i = 0; i < Input.touchCount; i++)
+            {
+                Touch t  = Input.GetTouch(i);
+                var   info = BuildTouchInfo(t.fingerId, t.position);
+
+                switch (t.phase)
+                {
+                    case TouchPhase.Began:
+                        _activeTouches[t.fingerId] = info;
+                        OnTabBegan?.Invoke(info);
+                        break;
+
+                    case TouchPhase.Moved:
+                    case TouchPhase.Stationary:
+                        if (_activeTouches.TryGetValue(t.fingerId, out var prev))
+                        {
+                            var updated = BuildTouchInfo(t.fingerId, t.position);
+                            if (updated.Lane != prev.Lane)
+                            {
+                                _activeTouches[t.fingerId] = updated;
+                                OnHeldTab?.Invoke(updated);
+                            }
+                            else OnHeldTab?.Invoke(prev);
+                        }
+                        break;
+
+                    case TouchPhase.Ended:
+                    case TouchPhase.Canceled:
+                        if (_activeTouches.TryGetValue(t.fingerId, out var end))
+                        {
+                            OnTabEnded?.Invoke(end);
+                            _activeTouches.Remove(t.fingerId);
+                        }
+                        break;
+                }
+            }
         }
 
         private void MouseInputReader()

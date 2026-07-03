@@ -41,6 +41,7 @@ namespace SMT3.Systems
                 return;
             }
             JudgmentType type = EvaluateJudge(delta);
+            GameEvents.RaiseOnJudged(type);
             hitEvent.Note.CompleteHandle();
         }
 

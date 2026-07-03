@@ -1,4 +1,6 @@
+using System;
 using SMT3.Game;
+using SMT3.Systems;
 using UnityEngine;
 
 namespace SMT3.Notes
@@ -18,12 +20,14 @@ namespace SMT3.Notes
         private float _fullHeight;
         private float _holdTime = 0f;
         private double _endHitTime => _data.Time + _data.Duration;
+        private double _holdStartTime;
         protected override void OnInit()
         {
             base.OnInit();
             _longNoteState = LongNoteState.WaitingTab;
             _holdVisual.size = new Vector2(_holdVisual.size.x, 0);
             _holdTime = 0f;
+            _holdStartTime = 0;
             Resize();
         }
 
@@ -32,6 +36,7 @@ namespace SMT3.Notes
             base.OnTabBegan(songDps);
             if(_longNoteState != LongNoteState.WaitingTab) return;
             _longNoteState = LongNoteState.Hold;
+            _holdStartTime = songDps - _songStartDSP;
         }
 
         public override void OnHeld(double songDps)
@@ -43,12 +48,13 @@ namespace SMT3.Notes
         private void UpdateHold(double songTime)
         {
             if (_longNoteState != LongNoteState.Hold) return;
-           
-            double remain = _endHitTime - songTime;
             _holdTime += Time.deltaTime;
+
+            double startWindows = Math.Min(_holdStartTime, _data.Time);
+            double remain = _endHitTime - startWindows;
             float holdRatio = Mathf.Clamp01((float)(remain / _data.Duration));
-            float rawProcess = 1f - holdRatio;
-            float fillHeight = Mathf.Clamp(rawProcess * _fullHeight * 2f, 0, _fullHeight);
+
+            float fillHeight = Mathf.Clamp(holdRatio * _fullHeight, 0, _fullHeight);
             _holdVisual.size = new Vector2(_holdVisual.size.x, fillHeight);
         }
 
@@ -63,6 +69,7 @@ namespace SMT3.Notes
                 TabTime =  songDps - _songStartDSP - _holdTime
             };
             GameEvents.RaiseOnNoteHit(hitEvent);
+            GameEvents.RaiseSpawnVFX(VFXType.Hit, this.transform.position + new Vector3(0,1,0));
         }
 
         private void Resize()
