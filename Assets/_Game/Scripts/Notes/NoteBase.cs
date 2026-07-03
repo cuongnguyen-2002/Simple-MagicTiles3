@@ -80,6 +80,7 @@ namespace SMT3.Notes
 
         private void ReturnToPool()
         {
+            if (_noteState == NoteState.Returned) return;
             _noteVisualTween?.Kill();
             _noteVisualTween = FadeAllVisual(0, 0.5f).OnComplete(() => OnHit?.Invoke(this));
         }
@@ -92,7 +93,6 @@ namespace SMT3.Notes
 
         private void HandleMissTimeout()
         {
-            CompleteHandle();
             GameEvents.RaiseOnGameOver();
         }
 
@@ -104,6 +104,12 @@ namespace SMT3.Notes
                 seq.Join(_noteVisuals[i].DOFade(alpha, duration));
             }
             return seq;
+        }
+
+        public virtual void ResetNote()
+        {
+            _noteVisualTween?.Kill();
+            _noteState = NoteState.Idle;
         }
 
     }

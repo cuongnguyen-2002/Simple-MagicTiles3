@@ -61,12 +61,14 @@ namespace SMT3.Systems
                 Debug.LogError($"{note.NoteType} not found");
                 return;
             }
+            note.transform.position = Vector3.zero;
+            note.ResetNote();
             pool.Release(note);
         }
 
         public void ReturnAllNotes(List<NoteBase> notes)
         {
-            foreach (var note in notes) ReturnNote(note);
+            for(int i = notes.Count - 1; i >= 0; i--) ReturnNote(notes[i]);
         }
     }
 }

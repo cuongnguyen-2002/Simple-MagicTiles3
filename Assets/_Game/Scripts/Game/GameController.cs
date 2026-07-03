@@ -18,8 +18,7 @@ namespace SMT3.Game
         private GamePlayScreen _gamePlayScreen;
         
         [Header("Level")]
-        [SerializeField] private TextAsset _notesFile;
-        [SerializeField] private AudioClip _bgmClip;
+        [SerializeField] SongDBSO _songDBSO;
         
         
         [SerializeField] private float _spawnOffset = 2f;
@@ -28,7 +27,7 @@ namespace SMT3.Game
 
         private void Awake()
         {
-            RootNoteData root = JsonConvert.DeserializeObject<RootNoteData>(_notesFile.text);
+            RootNoteData root = JsonConvert.DeserializeObject<RootNoteData>(_songDBSO.songData.text);
             float spawnY = Camera.main.orthographicSize + _spawnOffset;
             _notesSpawnSystem.Init(root.Notes, root.SongMeta.VisualSpeed, spawnY);
         }
@@ -56,9 +55,9 @@ namespace SMT3.Game
         public void GameStarted()
         {
             _isPlaying = true;
+            _notesSpawnSystem.Restart();
             ResetProgress();
             SetUpSong();
-            _notesSpawnSystem.Restart();
             _uiManager.ShowUI<GamePlayScreen>();
         }
 
@@ -69,7 +68,7 @@ namespace SMT3.Game
 
         private void SetUpSong()
         {
-            _audioSystem.InitSound(_bgmClip);
+            _audioSystem.InitSound(_songDBSO.song);
             _audioSystem.StartSong();
         }
 
@@ -100,13 +99,9 @@ namespace SMT3.Game
 
         private void StartNewLoop()
         {
-            SetUpSong();
             _notesSpawnSystem.Restart();
+            SetUpSong();
         }
     }
-
-    public static class GameContext
-    {
-        private static float SongStartDps;
-    }
+    
 }

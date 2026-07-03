@@ -3188,8 +3188,7 @@ MonoBehaviour:
   _notesSpawnSystem: {fileID: 715648497}
   _scoreSystem: {fileID: 1884478404}
   _uiManager: {fileID: 0}
-  _notesFile: {fileID: 4900000, guid: a982182a847eb474096fc8c4fd09c18a, type: 3}
-  _bgmClip: {fileID: 8300000, guid: 56c6643887398954fa6cf7d509095ad8, type: 3}
+  _songDBSO: {fileID: 11400000, guid: 70ae2ba21e5a724419bc2ddc8b3929be, type: 2}
   _spawnOffset: 2
 --- !u!1 &1776882056
 GameObject:

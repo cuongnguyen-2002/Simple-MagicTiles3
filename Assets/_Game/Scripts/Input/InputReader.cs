@@ -41,11 +41,15 @@ namespace SMT3.InputSystem
         private void ActiveInput()
         {
             _activeInput = true;
+            _isHeldTab = false;
+            _activeTouches.Clear();
         }
 
         private void InactiveInput()
         {
             _activeInput = false;
+            _isHeldTab = false;
+            _activeTouches.Clear();
         }
 
         private void Update()

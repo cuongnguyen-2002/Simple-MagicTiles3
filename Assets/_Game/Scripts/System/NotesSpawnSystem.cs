@@ -26,7 +26,7 @@ namespace SMT3.Systems
         private float _visualSpeed;
         private float _travelTime = 0;
         
-        public bool AllNoteSpawned => _currentNoteIndex >= _activeNotes.Count;
+        public bool AllNoteSpawned => _currentNoteIndex >= _notesData.Count;
         public bool HasNoActiveNote => _activeNotes.Count == 0;
         
         public List<NoteBase> ActiveNotes => _activeNotes;
@@ -106,8 +106,11 @@ namespace SMT3.Systems
         public void Restart()
         {
             _currentNoteIndex = 1;
-            _notesFactory.ReturnAllNotes(_activeNotes);
-            _activeNotes.Clear();
+            for (int i = _activeNotes.Count - 1; i >= 0 ; i--)
+            {
+                _notesFactory.ReturnNote(_activeNotes[i]);
+                _activeNotes.RemoveAt(i);
+            }
         }
     }
 }
